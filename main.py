@@ -3,10 +3,20 @@ from LLM.MockLLM import generate_mock_output
 from LLM.LLMGuard.GuardProcessor import process_output_with_llmguard, process_input_with_llmguard
 
 def run_llm_guard(prompt):
-    # Generate mock LLM output
+    """
+    Run LLMGuard on a prompt. This function processes both input and output with LLMGuard.
+
+    Args:
+        prompt (str): The prompt to process.
+
+    Returns:
+        str: The processed prompt.
+    """
+    
+    # Generate mock LLM output based on the preprocessed input
     mock_output = generate_mock_output(process_input_with_llmguard(prompt))
     
-    # Process the output with LLMGuard (placeholder)
+    # Process the output with LLMGuard
     processed_output = process_output_with_llmguard(mock_output)
     
     return processed_output

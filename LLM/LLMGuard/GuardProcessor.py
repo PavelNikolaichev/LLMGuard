@@ -4,7 +4,7 @@ from llm_guard.input_scanners.anonymize_helpers import BERT_LARGE_NER_CONF
 
 
 def process_output_with_llmguard(output):
-    print(f"Processed with LLMGuard: {output}")
+    print(f"Output before processing: {output}")
 
     # Need to not disclose student id or other sensitive information using LLMGuard
     
@@ -19,7 +19,7 @@ def process_output_with_llmguard(output):
 
 
 def process_input_with_llmguard(input):
-    print(f"Processed with LLMGuard: {input}")
+    print(f"Input before processing: {input}")
 
     # Need to not disclose student id or other sensitive information using LLMGuard
     
