@@ -21,7 +21,7 @@ def run_llm_guard(prompt):
     mock_output = generate_mock_output(process_input_with_llmguard(prompt))
 
     # Process the output with LLMGuard
-    processed_output = process_output_with_llmguard(mock_output)
+    processed_output = process_output_with_llmguard(prompt, mock_output)
 
     return processed_output
 
