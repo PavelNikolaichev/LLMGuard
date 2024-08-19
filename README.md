@@ -5,7 +5,7 @@ Our project aims to hide sensitive info for NYU students in particular, so some 
 
 To install LLMGuard, follow these steps:
 
-1. Clone the repository: `git clone https://github.com/your-username/LLMGuard.git`
+1. Clone the repository: `git clone https://github.com/PavelNikolaichev/LLMGuard.git`
 2. Install the required dependencies: `pip install -r requirements.txt`
 
 ## Usage
