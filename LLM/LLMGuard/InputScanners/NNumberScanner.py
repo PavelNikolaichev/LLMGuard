@@ -4,7 +4,7 @@ from llm_guard.input_scanners import Regex
 class NNumberScanner(Regex):
     """
     Scanner for N numbers
-    N number is a university id number that starts with letter N and is followed by 8 digits 
+    N number is a university id number that starts with letter N and is followed by 8 digits
     """
 
     def __init__(self, *args, **kwargs):
@@ -12,4 +12,3 @@ class NNumberScanner(Regex):
 
     def get_name(self):
         return "NNumberScanner"
-    

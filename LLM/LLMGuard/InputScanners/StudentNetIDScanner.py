@@ -11,7 +11,9 @@ class StudentNetIDScanner(Regex):
     """
 
     def __init__(self, *args, **kwargs):
-        super().__init__([r"\b[a-zA-Z]{2,3}\d{3,5}(?:@[a-zA-Z]+\.[a-zA-Z]+)?\b"], *args, **kwargs)
+        super().__init__(
+            [r"\b[a-zA-Z]{2,3}\d{3,5}(?:@[a-zA-Z]+\.[a-zA-Z]+)?\b"], *args, **kwargs
+        )
 
     def get_name(self):
         return "StudentNetIDScanner"

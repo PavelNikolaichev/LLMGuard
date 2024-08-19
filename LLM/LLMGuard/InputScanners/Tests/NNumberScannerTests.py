@@ -3,12 +3,13 @@ import unittest
 import sys
 import os
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
     sys.path.append(os.path.dirname(SCRIPT_DIR + "/../"))
 
 
 from NNumberScanner import *
+
 
 # TODO: Add more test cases, check regex matching itself.
 class TestNNumberScanner(unittest.TestCase):
@@ -18,20 +19,20 @@ class TestNNumberScanner(unittest.TestCase):
     def test_valid_n_number(self):
         test_input = "My university ID is N12345678."
         sanitized, isValid, risk = self.scanner.scan(test_input)
-        
+
         self.assertEqual(isValid, False)
         self.assertNotEqual(sanitized, test_input)
 
     def test_invalid_n_number(self):
         test_input = "My ID is X12345678."
         sanitized, isValid, risk = self.scanner.scan(test_input)
-        
+
         self.assertEqual(isValid, True)
         self.assertEqual(sanitized, test_input)
 
     def test_multiple_n_numbers(self):
         test_input = "IDs: N12345678, N87654321."
-        
+
         sanitized, isValid, risk = self.scanner.scan(test_input)
 
         self.assertEqual(isValid, False)
@@ -52,7 +53,7 @@ class TestNNumberScanner(unittest.TestCase):
         self.assertEqual(sanitized, test_input)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
     sys.path.append(os.path.dirname(SCRIPT_DIR + "/../"))
 
