@@ -16,7 +16,7 @@ To run this project, follow these steps:
 
 ## TODO
 
-- [ ] Implement scanners to detect personal information leakage. :mag: - in progress
+- [x] Implement scanners to detect personal information leakage. :mag: - in progress
 - [x] Consider using regex scanner for more accurate detection. :dart:
 - [ ] Implement real LLM (Leakage Limiting Mechanism) instead of the mock version. :gear:
 - [x] Generate tests to automate the testing process. :test_tube:
