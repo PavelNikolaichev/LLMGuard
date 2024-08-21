@@ -1,3 +1,4 @@
+import os
 from llm_guard.input_scanners import Anonymize
 from llm_guard.input_scanners.anonymize_helpers import BERT_LARGE_NER_CONF
 from llm_guard.vault import Vault
@@ -22,7 +23,8 @@ def process_output_with_llmguard(prompt: str, output: str, vault: Vault) -> str:
     Returns:
         str: The processed output.
     """
-    print(f"Output before processing: {output}")
+    if os.environ.get("ENVIRONMENT") == "development":
+        print(f"Output before processing: {output}")
 
     # Need to not disclose student id or other sensitive information using LLMGuard
     # Use the LLMGuard to scan the output
@@ -33,7 +35,8 @@ def process_output_with_llmguard(prompt: str, output: str, vault: Vault) -> str:
     # Anonymize the output
     anonymized_output, is_valid, risk_score = scanner.scan(prompt, output)
 
-    print(f"Output after processing: {anonymized_output}")
+    if os.environ.get("ENVIRONMENT") == "development":
+        print(f"Output after processing: {anonymized_output}")
 
     return anonymized_output
 
@@ -68,10 +71,7 @@ def process_input_with_llmguard(input: str, vault: Vault) -> str:
 
     sanitized_prompt, results_valid, risk_score = scan_prompt(input_scanners, input)
 
-    print(f"Input after processing: {sanitized_prompt}")
-
-    if any(not result for result in results_valid.values()):
-        print(f"Prompt \n`{input}`\n is not valid, scores: {risk_score}")
-        return sanitized_prompt
+    if os.environ.get("ENVIRONMENT") == "development":
+        print(f"Input after processing: {sanitized_prompt}")
 
     return sanitized_prompt

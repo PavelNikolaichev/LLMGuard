@@ -3,6 +3,9 @@
 # Visual Studio Code
 .vscode/
 .settings/
+.idea/
+
+.env
 
 # Gradio
 flagged/
