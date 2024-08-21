@@ -6,6 +6,8 @@ from LLM.LLMGuard.GuardProcessor import (
 )
 from LLM.Ollama import generate_ollama_output
 
+from LLM.TransformersLLM import generate_transformers_output
+
 from llm_guard.vault import Vault
 
 
@@ -24,7 +26,7 @@ def run_llm_guard(prompt):
 
     # Generate mock LLM output based on the preprocessed input
     # mock_output = generate_mock_output(process_input_with_llmguard(prompt))
-    mock_output = generate_ollama_output(process_input_with_llmguard(prompt, vault))
+    mock_output = generate_transformers_output(process_input_with_llmguard(prompt, vault))
 
     # Process the output with LLMGuard
     processed_output = process_output_with_llmguard(prompt, mock_output, vault)
