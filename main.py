@@ -4,6 +4,9 @@ from LLM.LLMGuard.GuardProcessor import (
     process_output_with_llmguard,
     process_input_with_llmguard,
 )
+from LLM.Ollama import generate_ollama_output
+
+from llm_guard.vault import Vault
 
 
 def run_llm_guard(prompt):
@@ -17,11 +20,14 @@ def run_llm_guard(prompt):
         str: The processed prompt.
     """
 
+    vault = Vault()
+
     # Generate mock LLM output based on the preprocessed input
-    mock_output = generate_mock_output(process_input_with_llmguard(prompt))
+    # mock_output = generate_mock_output(process_input_with_llmguard(prompt))
+    mock_output = generate_ollama_output(process_input_with_llmguard(prompt, vault))
 
     # Process the output with LLMGuard
-    processed_output = process_output_with_llmguard(prompt, mock_output)
+    processed_output = process_output_with_llmguard(prompt, mock_output, vault)
 
     return processed_output
 
