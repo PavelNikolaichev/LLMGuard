@@ -22,10 +22,10 @@ def get_transformers_pipeline(
     # model.generation_config.cache_implementation = "static" # Note: check whether model supports static caching.
 
     # if python version is lower than 3.12, use the following line:
-    if sys.version_info < (3, 12):
-        model.forward = torch.compile(
-            model.forward, mode="reduce-overhead", fullgraph=True
-        )
+    # if sys.version_info < (3, 12):
+    #     model.forward = torch.compile(
+    #         model.forward, mode="reduce-overhead", fullgraph=True
+    #     )
 
     return pipeline("text-generation", model=model, tokenizer=tokenizer)
 
