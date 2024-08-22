@@ -37,7 +37,7 @@ iface = gr.Interface(
     inputs="text",
     outputs="text",
     title="LLMGuard Tester",
-    description="Enter a prompt to generate mock LLM output and process it with LLMGuard.",
+    description="Enter a prompt to generate LLM output and process it with LLMGuard. Current mode is text generation.",
 )
 
 if __name__ == "__main__":
