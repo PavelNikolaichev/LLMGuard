@@ -52,7 +52,8 @@ def process_input_with_llmguard(input: str, vault: Vault) -> str:
     Returns:
         str: The processed input.
     """
-    print(f"Input before processing: {input}")
+    if os.environ.get("ENVIRONMENT") == "development":
+        print(f"Input before processing: {input}")
 
     # Need to not disclose student id or other sensitive information using LLMGuard
     # Use the LLMGuard to scan the output
@@ -61,6 +62,9 @@ def process_input_with_llmguard(input: str, vault: Vault) -> str:
         IDScanner(),
         NNumberScanner(),
         StudentNetIDScanner(),
+    ]
+
+    second_pass = [
         Anonymize(
             vault,
             preamble="Insert before prompt",
@@ -72,6 +76,13 @@ def process_input_with_llmguard(input: str, vault: Vault) -> str:
     sanitized_prompt, results_valid, risk_score = scan_prompt(input_scanners, input)
 
     if os.environ.get("ENVIRONMENT") == "development":
-        print(f"Input after processing: {sanitized_prompt}")
+        print(f"Input after processing(1st pass): {sanitized_prompt}")
+
+    sanitized_prompt, results_valid, risk_score = scan_prompt(
+        second_pass, sanitized_prompt
+    )
+
+    if os.environ.get("ENVIRONMENT") == "development":
+        print(f"Input after processing(2nd pass): {sanitized_prompt}")
 
     return sanitized_prompt
