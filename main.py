@@ -5,7 +5,9 @@ from LLM.LLMGuard.GuardProcessor import (
 )
 from llm_guard.vault import Vault
 
-from LLM.TransformersLLM import get_transformers_pipeline, generate_transformers_output
+from dotenv import load_dotenv
+
+from LLM.LLamaLLM import get_transformers_pipeline, generate_transformers_output
 
 pipeline = None
 
@@ -41,6 +43,8 @@ iface = gr.Interface(
 )
 
 if __name__ == "__main__":
+    load_dotenv()
+
     pipeline = get_transformers_pipeline()
 
     iface.launch()

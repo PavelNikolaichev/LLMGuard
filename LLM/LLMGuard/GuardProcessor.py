@@ -23,20 +23,17 @@ def process_output_with_llmguard(prompt: str, output: str, vault: Vault) -> str:
     Returns:
         str: The processed output.
     """
-    if os.environ.get("ENVIRONMENT") == "development":
-        print(f"Output before processing: {output}")
+    if os.getenv("ENVIRONMENT") and os.getenv("ENVIRONMENT") == "development":
+        print(f"[DEV]Output before processing: {output}")
 
-    # Need to not disclose student id or other sensitive information using LLMGuard
-    # Use the LLMGuard to scan the output
     scanner = Deanonymize(
         vault,
     )
 
-    # Anonymize the output
     anonymized_output, is_valid, risk_score = scanner.scan(prompt, output)
 
-    if os.environ.get("ENVIRONMENT") == "development":
-        print(f"Output after processing: {anonymized_output}")
+    if os.getenv("ENVIRONMENT") and os.getenv("ENVIRONMENT") == "development":
+        print(f"[DEV]Output after processing: {anonymized_output}")
 
     return anonymized_output
 
@@ -52,11 +49,8 @@ def process_input_with_llmguard(input: str, vault: Vault) -> str:
     Returns:
         str: The processed input.
     """
-    if os.environ.get("ENVIRONMENT") == "development":
-        print(f"Input before processing: {input}")
-
-    # Need to not disclose student id or other sensitive information using LLMGuard
-    # Use the LLMGuard to scan the output
+    if os.getenv("ENVIRONMENT") and os.getenv("ENVIRONMENT") == "development":
+        print(f"[DEV]Input before processing: {input}")
 
     input_scanners = [
         IDScanner(),
@@ -75,14 +69,14 @@ def process_input_with_llmguard(input: str, vault: Vault) -> str:
 
     sanitized_prompt, results_valid, risk_score = scan_prompt(input_scanners, input)
 
-    if os.environ.get("ENVIRONMENT") == "development":
-        print(f"Input after processing(1st pass): {sanitized_prompt}")
+    if os.getenv("ENVIRONMENT") and os.getenv("ENVIRONMENT") == "development":
+        print(f"[DEV]Input after processing(1st pass): {sanitized_prompt}")
 
     sanitized_prompt, results_valid, risk_score = scan_prompt(
         second_pass, sanitized_prompt
     )
 
-    if os.environ.get("ENVIRONMENT") == "development":
-        print(f"Input after processing(2nd pass): {sanitized_prompt}")
+    if os.getenv("ENVIRONMENT") and os.getenv("ENVIRONMENT") == "development":
+        print(f"[DEV]Input after processing(2nd pass): {sanitized_prompt}")
 
     return sanitized_prompt
