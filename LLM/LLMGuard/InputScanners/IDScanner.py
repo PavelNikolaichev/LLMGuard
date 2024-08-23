@@ -12,10 +12,27 @@ class IDScanner(Regex):
     """
 
     def __init__(self, *args, **kwargs):
-        super().__init__([r"([A-Z]{2,4})?\d{6,10}"], *args, **kwargs)
+        self.string_patterns = [r"([A-Z]{2,4})?\d{6,10}"]
+        super().__init__(self.string_patterns, *args, **kwargs)
 
     def get_name(self):
         return "IDScanner"
+
+    def to_anonymize_dict(self):
+        """
+        Returns the anonymize dictionary for the Anonymize scanner.
+
+        Returns:
+            dict: The anonymize dictionary, containing the expressions, name, examples, context, score, and languages.
+        """
+        return {
+            "expressions": self.string_patterns,
+            "name": self.get_name(),
+            "examples": ["ND22848814", "1234567890"],
+            "context": ["id", "passport", "identity"],
+            "score": 0.9,
+            "languages": ["en"],
+        }
 
     def scan(self, prompt: str) -> tuple[str, bool, float]:
         text_replace_builder = TextReplaceBuilder(original_text=prompt)

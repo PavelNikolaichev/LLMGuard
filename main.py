@@ -7,7 +7,7 @@ from llm_guard.vault import Vault
 
 from dotenv import load_dotenv
 
-from LLM.LLamaLLM import get_transformers_pipeline, generate_transformers_output
+from LLM.LLamaLLM import get_pipeline, generate_output
 
 pipeline = None
 
@@ -24,7 +24,7 @@ def run_llm_guard(prompt: str) -> str:
     """
     vault = Vault()
 
-    mock_output = generate_transformers_output(
+    mock_output = generate_output(
         process_input_with_llmguard(prompt, vault),
         pipeline,
     )
@@ -45,6 +45,6 @@ iface = gr.Interface(
 if __name__ == "__main__":
     load_dotenv()
 
-    pipeline = get_transformers_pipeline()
+    pipeline = get_pipeline()
 
     iface.launch()

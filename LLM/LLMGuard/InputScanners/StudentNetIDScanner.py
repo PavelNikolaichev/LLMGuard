@@ -16,10 +16,27 @@ class StudentNetIDScanner(Regex):
     """
 
     def __init__(self, *args, **kwargs):
-        super().__init__([r"[a-zA-Z]+\d+(?:@[a-zA-Z]+\.[a-zA-Z]+)?"], *args, **kwargs)
+        self.string_patterns = [r"[a-zA-Z]+\d+(?:@[a-zA-Z]+\.[a-zA-Z]+)?"]
+        super().__init__(self.string_patterns, *args, **kwargs)
 
     def get_name(self):
         return "StudentNetIDScanner"
+
+    def to_anonymize_dict(self):
+        """
+        Returns the anonymize dictionary for the Anonymize scanner.
+
+        Returns:
+            dict: The anonymize dictionary, containing the expressions, name, examples, context, score, and languages.
+        """
+        return {
+            "expressions": self.string_patterns,
+            "name": self.get_name(),
+            "examples": ["NetID123", "student123@university.edu"],
+            "context": ["university", "login", "email", "netid", "NYU"],
+            "score": 0.8,
+            "languages": ["en"],
+        }
 
     def scan(self, prompt: str) -> tuple[str, bool, float]:
         text_replace_builder = TextReplaceBuilder(original_text=prompt)

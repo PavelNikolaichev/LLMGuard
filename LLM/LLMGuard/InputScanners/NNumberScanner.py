@@ -15,10 +15,27 @@ class NNumberScanner(Regex):
     """
 
     def __init__(self, *args, **kwargs):
-        super().__init__([r"N\d{8}"], *args, **kwargs)
+        self.string_patterns = [r"N\d{8}"]
+        super().__init__(self.string_patterns, *args, **kwargs)
 
     def get_name(self):
         return "NNumberScanner"
+
+    def to_anonymize_dict(self):
+        """
+        Returns the anonymize dictionary for the Anonymize scanner.
+
+        Returns:
+            dict: The anonymize dictionary, containing the expressions, name, examples, context, score, and languages.
+        """
+        return {
+            "expressions": self.string_patterns,
+            "name": self.get_name(),
+            "examples": ["N12345678", "N87654321"],
+            "context": ["university", "student", "id"],
+            "score": 0.85,
+            "languages": ["en"],
+        }
 
     def scan(self, prompt: str) -> tuple[str, bool, float]:
         text_replace_builder = TextReplaceBuilder(original_text=prompt)
