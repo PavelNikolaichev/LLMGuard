@@ -35,12 +35,16 @@ def process_output_with_llmguard(prompt: str, output: str, vault: Vault) -> str:
         vault,
     )
 
-    anonymized_output, is_valid, risk_score = scanner.scan(prompt, output)
+    # try:
+    #     anonymized_output, is_valid, risk_score = scanner.scan(prompt, output)
 
-    if os.getenv("ENVIRONMENT") and os.getenv("ENVIRONMENT") == "development":
-        print(f"[DEV]Output after processing: {anonymized_output}")
+    #     if os.getenv("ENVIRONMENT") and os.getenv("ENVIRONMENT") == "development":
+    #         print(f"[DEV]Output after processing: {anonymized_output}")
+    # except Exception as e:
+    #     print(f"Error processing output: {e}")
+    #     anonymized_output = output
 
-    return anonymized_output
+    return output
 
 
 def process_input_with_llmguard(input: str, vault: Vault) -> str:
@@ -57,11 +61,11 @@ def process_input_with_llmguard(input: str, vault: Vault) -> str:
     if os.getenv("ENVIRONMENT") and os.getenv("ENVIRONMENT") == "development":
         print(f"[DEV]Input before processing: {input}")
 
-    # input_scanners = [
-    #     IDScanner(),
-    #     NNumberScanner(),
-    #     StudentNetIDScanner(),
-    # ]
+    input_scanners = [
+        IDScanner(),
+        NNumberScanner(),
+        StudentNetIDScanner(),
+    ]
 
     second_pass = [
         Anonymize(
@@ -76,9 +80,9 @@ def process_input_with_llmguard(input: str, vault: Vault) -> str:
                 {
                     "expressions": [r"[a-zA-Z]+\d+(?:@[a-zA-Z]+\.[a-zA-Z]+)?"],
                     "name": "NetID",
-                    # "context": ["student", "id"],
-                    # "score": 0.85,
-                    # "languages": ["en"],
+                    "context": ["student", "id"],
+                    "score": 0.85,
+                    "languages": ["en"],
                 },
             ],
             entity_types=DEFAULT_ENTITY_TYPES
@@ -87,11 +91,11 @@ def process_input_with_llmguard(input: str, vault: Vault) -> str:
         ),
     ]
 
-    # sanitized_prompt, results_valid, risk_score = scan_prompt(input_scanners, input)
-    sanitized_prompt = input
+    sanitized_prompt, results_valid, risk_score = scan_prompt(input_scanners, input)
+    # sanitized_prompt = input
 
-    # if os.getenv("ENVIRONMENT") and os.getenv("ENVIRONMENT") == "development":
-    #     print(f"[DEV]Input after processing(1st pass): {sanitized_prompt}")
+    if os.getenv("ENVIRONMENT") and os.getenv("ENVIRONMENT") == "development":
+        print(f"[DEV]Input after processing(1st pass): {sanitized_prompt}")
 
     sanitized_prompt, results_valid, risk_score = scan_prompt(
         second_pass, sanitized_prompt

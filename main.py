@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 from LLM.LLamaLLM import get_pipeline, generate_output
 
 pipeline = None
+vault = Vault()
 
 
 def run_llm_guard(prompt: str) -> str:
@@ -22,7 +23,6 @@ def run_llm_guard(prompt: str) -> str:
     Returns:
         str: The processed prompt.
     """
-    vault = Vault()
 
     mock_output = generate_output(
         process_input_with_llmguard(prompt, vault),

@@ -50,7 +50,7 @@ class StudentNetIDScanner(Regex):
 
                 if self._redact:
                     text_replace_builder.replace_text_get_insertion_index(
-                        "[NetID OMMITED]",
+                        "[OMMITED_NETID]",
                         match.start(),
                         match.end(),
                     )

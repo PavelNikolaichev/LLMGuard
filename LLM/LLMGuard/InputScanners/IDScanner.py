@@ -46,7 +46,7 @@ class IDScanner(Regex):
 
                 if self._redact:
                     text_replace_builder.replace_text_get_insertion_index(
-                        "[ID OMMITED]",
+                        "[OMMITED_ID]",
                         match.start(),
                         match.end(),
                     )

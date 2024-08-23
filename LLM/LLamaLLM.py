@@ -14,7 +14,7 @@ def get_pipeline(model_name: str = "Qwen/Qwen2-0.5B-Instruct-GGUF"):
         Llama: The Llama pipeline
     """
     return Llama.from_pretrained(
-        repo_id=model_name, filename="*q4_0.gguf", verbose=False
+        repo_id=model_name, filename="*q2_k.gguf", verbose=False
     )
 
 

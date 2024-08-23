@@ -49,7 +49,7 @@ class NNumberScanner(Regex):
 
                 if self._redact:
                     text_replace_builder.replace_text_get_insertion_index(
-                        "[StudentID OMMITED]",
+                        "[OMMITTED_NNUMBER]",
                         match.start(),
                         match.end(),
                     )
