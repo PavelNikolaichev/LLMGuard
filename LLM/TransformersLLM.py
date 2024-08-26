@@ -29,9 +29,12 @@ def get_transformers_pipeline(model_name: str = "Qwen/Qwen2-0.5B") -> pipeline:
 
     # Compilation doesn't work with Python 3.12+ yet
     if sys.version_info < (3, 12):
-        model.forward = torch.compile(
-            model.forward, mode="reduce-overhead", fullgraph=True
-        )
+        try:
+            model.forward = torch.compile(
+                model.forward, mode="reduce-overhead", fullgraph=True
+            )
+        except Exception as e:
+            print(e)
 
     return pipeline(
         "text-generation",

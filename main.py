@@ -10,7 +10,6 @@ from dotenv import load_dotenv
 from LLM.LLamaLLM import get_pipeline, generate_output
 
 pipeline = None
-vault = Vault()
 
 
 def run_llm_guard(prompt: str) -> str:
@@ -23,13 +22,17 @@ def run_llm_guard(prompt: str) -> str:
     Returns:
         str: The processed prompt.
     """
+    regex_vault = {}
+    vault = Vault()
 
     mock_output = generate_output(
-        process_input_with_llmguard(prompt, vault),
+        process_input_with_llmguard(prompt, vault, regex_vault),
         pipeline,
     )
 
-    processed_output = process_output_with_llmguard(prompt, mock_output, vault)
+    processed_output = process_output_with_llmguard(
+        prompt, mock_output, vault, regex_vault
+    )
 
     return processed_output
 

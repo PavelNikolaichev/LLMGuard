@@ -31,11 +31,13 @@ class TestStudentNetIDScanner(unittest.TestCase):
         self.assertEqual(sanitized, test_input)
 
     def test_multiple_netids(self):
+        # TODO: check all the matches in this case
         test_input = "NetIDs: ab1234, cd5678."
 
         sanitized, isValid, risk = self.scanner.scan(test_input)
 
         self.assertEqual(isValid, False)
+
         self.assertNotEqual(sanitized, test_input)
 
     def test_no_netid(self):
@@ -46,11 +48,11 @@ class TestStudentNetIDScanner(unittest.TestCase):
         self.assertEqual(sanitized, test_input)
 
     def test_edge_cases(self):
-        test_input = "ab1230495 is not valid because it has more than 5 digits."
+        test_input = "ab1230495 is not valid because digits are limitless."
         sanitized, isValid, risk = self.scanner.scan(test_input)
 
-        self.assertEqual(isValid, True)
-        self.assertEqual(sanitized, test_input)
+        self.assertEqual(isValid, False)
+        self.assertNotEqual(sanitized, test_input)
 
     def test_email_netid(self):
         test_input = "My NetID is ab1234@example.com"
