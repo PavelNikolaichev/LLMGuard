@@ -25,10 +25,11 @@ class StudentNetIDScanner(Regex):
 
         isValid = True
         for pattern in self._patterns:
-            matches = re.finditer(pattern, prompt)
+            matches = list(re.finditer(pattern, prompt))[::-1]
+            self.counter += len(matches) + 1
             for match in matches:
                 original_data = match.group(0)
-                self.counter += 1
+                self.counter -= 1
                 key = f"NETID_{self.counter}"
                 self.storage_dict[key] = original_data
                 anonymized_data = f"[OMITTED_{key}]"
@@ -42,6 +43,8 @@ class StudentNetIDScanner(Regex):
 
                 isValid = False
 
+            prompt = text_replace_builder.output_text
+
         if isValid:
             LOGGER.warning("None of the patterns matched the text")
             return text_replace_builder.output_text, True, 1.0
@@ -52,7 +55,7 @@ class StudentNetIDScanner(Regex):
         self, text_replace_builder: TextReplaceBuilder
     ) -> tuple[str, bool, float]:
         prompt = text_replace_builder.output_text
-        for match in re.finditer(r"\[OMITTED_NETID_\d+\]", prompt):
+        for match in list(re.finditer(r"\[OMITTED_NETID_\d+\]", prompt))[::-1]:
             key = match.group(0)[9:-1]
             original_data = self.storage_dict.get(key)
             if original_data:
@@ -62,5 +65,7 @@ class StudentNetIDScanner(Regex):
                     match.end(),
                 )
                 LOGGER.debug("Deanonymized the data back", id=key)
+
+            prompt = text_replace_builder.output_text
 
         return text_replace_builder.output_text, True, 0.0
