@@ -40,9 +40,7 @@ def process_output_with_llmguard(
             desanitized_output, deanonymize=True
         )
 
-    scanner = Deanonymize(
-        vault,
-    )
+    scanner = Deanonymize(vault)
 
     try:
         desanitized_output, is_valid, risk_score = scanner.scan(

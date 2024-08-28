@@ -11,17 +11,17 @@ if __name__ == "__main__":
 from NNumberScanner import *
 
 
-# TODO: Add more test cases, check regex matching itself.
 class TestNNumberScanner(unittest.TestCase):
     def setUp(self):
         self.scanner = NNumberScanner()
 
     def test_valid_n_number(self):
         test_input = "My university ID is N12345678."
+        test_output = "My university ID is [OMITTED_NNUMBER_1]."
         sanitized, isValid, risk = self.scanner.scan(test_input)
 
         self.assertEqual(isValid, False)
-        self.assertNotEqual(sanitized, test_input)
+        self.assertEqual(sanitized, test_output)
 
     def test_invalid_n_number(self):
         test_input = "My ID is X12345678."
@@ -32,11 +32,16 @@ class TestNNumberScanner(unittest.TestCase):
 
     def test_multiple_n_numbers(self):
         test_input = "IDs: N12345678, N87654321."
+        test_output = "IDs: [OMITTED_NNUMBER_1], [OMITTED_NNUMBER_2]."
 
         sanitized, isValid, risk = self.scanner.scan(test_input)
 
         self.assertEqual(isValid, False)
-        self.assertNotEqual(sanitized, test_input)
+        self.assertEqual(sanitized, test_output)
+
+        desanitized, _, _ = self.scanner.scan(sanitized, True)
+
+        self.assertEqual(desanitized, test_input)
 
     def test_no_n_number(self):
         test_input = "This sentence has no N number."
