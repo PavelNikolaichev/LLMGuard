@@ -51,15 +51,23 @@ class TestIDScanner(unittest.TestCase):
         self.assertEqual(isValid, False)
         self.assertTrue(sanitized == test_output or sanitized == test_output_2)
 
+        desanitize, _, _ = self.scanner.scan(sanitized, deanonymize=True)
+
+        self.assertEqual(desanitize, test_input)
+
     def test_scan_us_id_2(self):
         test_input = "My ID is US123456789."
         test_output = "My ID is [OMITTED_ID_1]."
-        test_output_2 = "My ID [OMITTED_ID_1]."
+        test_output_2 = "My ID [OMITTED_ID_1]."  # alternative if the scanner is capturing passport serties with a space
 
         sanitized, isValid, risk = self.scanner.scan(test_input)
 
         self.assertEqual(isValid, False)
         self.assertTrue(sanitized == test_output or sanitized == test_output_2)
+
+        desanitize, _, _ = self.scanner.scan(sanitized, deanonymize=True)
+
+        self.assertEqual(desanitize, test_input)
 
     def test_scan_large_number(self):
         test_input = "My ID is 12345678901234567890."
