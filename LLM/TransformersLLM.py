@@ -1,36 +1,50 @@
 import sys
 import torch
-from transformers import pipeline, AutoModelForCausalLM, AutoTokenizer
+from transformers import (
+    pipeline,
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    QuantoConfig,
+)
+
+device = "cpu"
 
 
-# TODO: set appropriate model
-def get_transformers_pipeline(
-    model_name: str = "microsoft/Phi-3.5-mini-instruct",
-) -> pipeline:
+def get_transformers_pipeline(model_name: str = "Qwen/Qwen2-0.5B") -> pipeline:
     """
     Function to get a Transformers pipeline that can be used to generate output.
 
     Args:
-        model_name (str): The name of the model to load. Defaults to "gpt2".
+        model_name (str): The name of the model to load. Defaults to "Qwen/Qwen2-0.5B".
 
     Returns:
         pipeline: The Transformers pipeline instance.
     """
+    quantization_config = QuantoConfig(weights="int2")
+
     tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForCausalLM.from_pretrained(model_name, device_map="auto")
+    model = AutoModelForCausalLM.from_pretrained(
+        model_name, device_map="cpu", quantization_config=quantization_config
+    )
 
-    # model.generation_config.cache_implementation = "static" # Note: check whether model supports static caching.
-
-    # if python version is lower than 3.12, use the following line:
+    # Compilation doesn't work with Python 3.12+ yet
     if sys.version_info < (3, 12):
-        model.forward = torch.compile(
-            model.forward, mode="reduce-overhead", fullgraph=True
-        )
+        try:
+            model.forward = torch.compile(
+                model.forward, mode="reduce-overhead", fullgraph=True
+            )
+        except Exception as e:
+            print(e)
 
-    return pipeline("text-generation", model=model, tokenizer=tokenizer)
+    return pipeline(
+        "text-generation",
+        model=model,
+        tokenizer=tokenizer,
+        device_map="auto",
+    )
 
 
-def generate_transformers_output(prompt: str, pipeline=None) -> str:
+def generate_transformers_output(prompt: str, pipeline: pipeline = None) -> str:
     """
     Function to generate an output from the Transformers pipeline.
 
@@ -44,6 +58,16 @@ def generate_transformers_output(prompt: str, pipeline=None) -> str:
     if pipeline is None:
         pipeline = get_transformers_pipeline()
 
-    response = pipeline(prompt, max_length=100, do_sample=True)
+    messages = [
+        {
+            "role": "system",
+            "content": "You are a helpful assistant in a university environment. Help professors and students with their questions and problems.",
+        },
+        {"role": "user", "content": prompt},
+    ]
 
-    return response[0]["generated_text"]
+    response = pipeline(messages, max_new_tokens=100, do_sample=True)
+
+    print(response)
+
+    return response[0]["generated_text"][-1]

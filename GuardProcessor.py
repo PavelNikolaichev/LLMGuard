@@ -26,32 +26,39 @@ def process_output_with_llmguard(
     Returns:
         str: The processed output.
     """
+    if os.getenv("ENVIRONMENT") and os.getenv("ENVIRONMENT") == "development":
+        print(f"[DEV]Output before processing: {output}")
+
     output_scanners = [
+        IDScanner(regex_vault),
         NNumberScanner(regex_vault),
         StudentNetIDScanner(regex_vault),
-        IDScanner(regex_vault),
     ]
 
-    desanitized_output = ""
+    sanitized_output = ""
 
-    desanitized_output = output
+    print(regex_vault)
+
     for scanner in output_scanners:
-        desanitized_output, is_valid, risk_score = scanner.scan(
-            desanitized_output, deanonymize=True
-        )
+        sanitized_output, is_valid, risk_score = scanner.scan(prompt, deanonymize=True)
+
+        if os.getenv("ENVIRONMENT") and os.getenv("ENVIRONMENT") == "development":
+            print(f"[DEV]Output after processing: {sanitized_output}")
 
     scanner = Deanonymize(
         vault,
     )
 
-    try:
-        desanitized_output, is_valid, risk_score = scanner.scan(
-            prompt, desanitized_output
-        )
-    except Exception as e:
-        print(f"Error during Deanonimyze scanner output: {e}")
+    # try:
+    #     anonymized_output, is_valid, risk_score = scanner.scan(prompt, output)
 
-    return desanitized_output
+    #     if os.getenv("ENVIRONMENT") and os.getenv("ENVIRONMENT") == "development":
+    #         print(f"[DEV]Output after processing: {anonymized_output}")
+    # except Exception as e:
+    #     print(f"Error processing output: {e}")
+    #     anonymized_output = output
+
+    return output
 
 
 def process_input_with_llmguard(input: str, vault: Vault, regex_vault: dict) -> str:
@@ -65,13 +72,16 @@ def process_input_with_llmguard(input: str, vault: Vault, regex_vault: dict) -> 
     Returns:
         str: The processed input.
     """
+    if os.getenv("ENVIRONMENT") and os.getenv("ENVIRONMENT") == "development":
+        print(f"[DEV]Input before processing: {input}")
+
     input_scanners = [
+        IDScanner(regex_vault),
         NNumberScanner(regex_vault),
         StudentNetIDScanner(regex_vault),
-        IDScanner(regex_vault),
     ]
 
-    # Note: custom regex_patterns are not working, so we are using 2 passes
+    # Note: custom regex_patterns are not working
     second_pass = [
         Anonymize(
             vault, preamble="Insert before prompt", recognizer_conf=BERT_LARGE_NER_CONF
@@ -79,11 +89,18 @@ def process_input_with_llmguard(input: str, vault: Vault, regex_vault: dict) -> 
     ]
 
     sanitized_prompt = input
+
     for scanner in input_scanners:
         sanitized_prompt, is_valid, risk_score = scanner.scan(sanitized_prompt)
+
+    if os.getenv("ENVIRONMENT") and os.getenv("ENVIRONMENT") == "development":
+        print(f"[DEV]Input after processing(1st pass): {sanitized_prompt}")
 
     sanitized_prompt, results_valid, risk_score = scan_prompt(
         second_pass, sanitized_prompt
     )
+
+    if os.getenv("ENVIRONMENT") and os.getenv("ENVIRONMENT") == "development":
+        print(f"[DEV]Input after processing(2nd pass): {sanitized_prompt}")
 
     return sanitized_prompt
