@@ -5,7 +5,9 @@ from LLM.LLMGuard.GuardProcessor import (
 )
 from llm_guard.vault import Vault
 
-from LLM.TransformersLLM import get_transformers_pipeline, generate_transformers_output
+from dotenv import load_dotenv
+
+from LLM.LLamaLLM import get_pipeline, generate_output
 
 pipeline = None
 
@@ -20,14 +22,17 @@ def run_llm_guard(prompt: str) -> str:
     Returns:
         str: The processed prompt.
     """
+    regex_vault = {}
     vault = Vault()
 
-    mock_output = generate_transformers_output(
-        process_input_with_llmguard(prompt, vault),
+    mock_output = generate_output(
+        process_input_with_llmguard(prompt, vault, regex_vault),
         pipeline,
     )
 
-    processed_output = process_output_with_llmguard(prompt, mock_output, vault)
+    processed_output = process_output_with_llmguard(
+        prompt, mock_output, vault, regex_vault
+    )
 
     return processed_output
 
@@ -37,10 +42,12 @@ iface = gr.Interface(
     inputs="text",
     outputs="text",
     title="LLMGuard Tester",
-    description="Enter a prompt to generate mock LLM output and process it with LLMGuard.",
+    description="Enter a prompt to generate LLM output and process it with LLMGuard. Current mode is text generation.",
 )
 
 if __name__ == "__main__":
-    pipeline = get_transformers_pipeline()
+    load_dotenv()
+
+    pipeline = get_pipeline()
 
     iface.launch()

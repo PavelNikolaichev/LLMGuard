@@ -1,6 +1,7 @@
 import os
 from llm_guard.input_scanners import Anonymize
 from llm_guard.input_scanners.anonymize_helpers import BERT_LARGE_NER_CONF
+
 from llm_guard.vault import Vault
 from llm_guard import scan_prompt
 
@@ -11,7 +12,9 @@ from LLM.LLMGuard.InputScanners.StudentNetIDScanner import StudentNetIDScanner
 from llm_guard.output_scanners import Deanonymize
 
 
-def process_output_with_llmguard(prompt: str, output: str, vault: Vault) -> str:
+def process_output_with_llmguard(
+    prompt: str, output: str, vault: Vault, regex_vault: dict
+) -> str:
     """
     Function to process the output with LLMGuard by applying Deanonymize scanner.
 
@@ -23,25 +26,33 @@ def process_output_with_llmguard(prompt: str, output: str, vault: Vault) -> str:
     Returns:
         str: The processed output.
     """
-    if os.environ.get("ENVIRONMENT") == "development":
-        print(f"Output before processing: {output}")
+    output_scanners = [
+        NNumberScanner(regex_vault),
+        StudentNetIDScanner(regex_vault),
+        IDScanner(regex_vault),
+    ]
 
-    # Need to not disclose student id or other sensitive information using LLMGuard
-    # Use the LLMGuard to scan the output
-    scanner = Deanonymize(
-        vault,
-    )
+    desanitized_output = ""
 
-    # Anonymize the output
-    anonymized_output, is_valid, risk_score = scanner.scan(prompt, output)
+    desanitized_output = output
+    for scanner in output_scanners:
+        desanitized_output, is_valid, risk_score = scanner.scan(
+            desanitized_output, deanonymize=True
+        )
 
-    if os.environ.get("ENVIRONMENT") == "development":
-        print(f"Output after processing: {anonymized_output}")
+    scanner = Deanonymize(vault)
 
-    return anonymized_output
+    try:
+        desanitized_output, is_valid, risk_score = scanner.scan(
+            prompt, desanitized_output
+        )
+    except Exception as e:
+        print(f"Error during Deanonimyze scanner output: {e}")
+
+    return desanitized_output
 
 
-def process_input_with_llmguard(input: str, vault: Vault) -> str:
+def process_input_with_llmguard(input: str, vault: Vault, regex_vault: dict) -> str:
     """
     Function to process the input with LLMGuard by applying the appropriate scanners.
 
@@ -52,37 +63,25 @@ def process_input_with_llmguard(input: str, vault: Vault) -> str:
     Returns:
         str: The processed input.
     """
-    if os.environ.get("ENVIRONMENT") == "development":
-        print(f"Input before processing: {input}")
-
-    # Need to not disclose student id or other sensitive information using LLMGuard
-    # Use the LLMGuard to scan the output
-
     input_scanners = [
-        IDScanner(),
-        NNumberScanner(),
-        StudentNetIDScanner(),
+        NNumberScanner(regex_vault),
+        StudentNetIDScanner(regex_vault),
+        IDScanner(regex_vault),
     ]
 
+    # Note: custom regex_patterns are not working, so we are using 2 passes
     second_pass = [
         Anonymize(
-            vault,
-            preamble="Insert before prompt",
-            recognizer_conf=BERT_LARGE_NER_CONF,
-            language="en",
+            vault, preamble="Insert before prompt", recognizer_conf=BERT_LARGE_NER_CONF
         ),
     ]
 
-    sanitized_prompt, results_valid, risk_score = scan_prompt(input_scanners, input)
-
-    if os.environ.get("ENVIRONMENT") == "development":
-        print(f"Input after processing(1st pass): {sanitized_prompt}")
+    sanitized_prompt = input
+    for scanner in input_scanners:
+        sanitized_prompt, is_valid, risk_score = scanner.scan(sanitized_prompt)
 
     sanitized_prompt, results_valid, risk_score = scan_prompt(
         second_pass, sanitized_prompt
     )
-
-    if os.environ.get("ENVIRONMENT") == "development":
-        print(f"Input after processing(2nd pass): {sanitized_prompt}")
 
     return sanitized_prompt
