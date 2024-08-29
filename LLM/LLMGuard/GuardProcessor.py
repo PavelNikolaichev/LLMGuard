@@ -55,9 +55,7 @@ def process_output_with_llmguard(
 
     recognizer = PatternRecognizer(supported_entity="TITLE", patterns=patterns)
 
-    entries = recognizer.analyze(text=output, entities=["TITLE"])
-
-    print(regex_vault)
+    # entries = recognizer.analyze(text=output, entities=["TITLE"])
 
     def check(x):
         print("pattern", x)
@@ -65,13 +63,13 @@ def process_output_with_llmguard(
         print(res)
         return res
 
-    result = engine.deanonymize(
+    # result = engine.deanonymize(
         text=output,
         entities=entries,
         operators={"TITLE": OperatorConfig("custom", {"lambda": lambda x: check(x)})},
     )
 
-    return result
+    return output
 
     # output_scanners = [
     #     NNumberScanner(regex_vault),
