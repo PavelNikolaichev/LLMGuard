@@ -1,20 +1,30 @@
-import os
-from llm_guard.input_scanners import Anonymize
-from llm_guard.input_scanners.anonymize_helpers import BERT_LARGE_NER_CONF
+import glob
+from typing import List
+import pprint
 
-from llm_guard.vault import Vault
-from llm_guard import scan_prompt
-
-from LLM.LLMGuard.InputScanners.IDScanner import IDScanner
-from LLM.LLMGuard.InputScanners.NNumberScanner import NNumberScanner
-from LLM.LLMGuard.InputScanners.StudentNetIDScanner import StudentNetIDScanner
-
-from llm_guard.output_scanners import Deanonymize
+from numpy import rec
+from presidio_analyzer import (
+    AnalyzerEngine,
+    PatternRecognizer,
+    EntityRecognizer,
+    Pattern,
+    RecognizerResult,
+)
+from presidio_analyzer.recognizer_registry import RecognizerRegistry
+from presidio_analyzer.nlp_engine import NlpEngine, SpacyNlpEngine, NlpArtifacts
+from presidio_analyzer.context_aware_enhancers import LemmaContextAwareEnhancer
+from presidio_anonymizer import (
+    AnonymizerEngine,
+    DeanonymizeEngine,
+    EngineResult,
+    OperatorConfig,
+)
+import regex
 
 
 def process_output_with_llmguard(
-    prompt: str, output: str, vault: Vault, regex_vault: dict
-) -> str:
+    prompt: str, output: str, regex_vault: dict
+) -> EngineResult:
     """
     Function to process the output with LLMGuard by applying Deanonymize scanner.
 
@@ -26,62 +36,124 @@ def process_output_with_llmguard(
     Returns:
         str: The processed output.
     """
-    output_scanners = [
-        NNumberScanner(regex_vault),
-        StudentNetIDScanner(regex_vault),
-        IDScanner(regex_vault),
+    engine = DeanonymizeEngine()
+
+    patterns = [
+        Pattern(
+            name="StudentNetID",
+            regex="[a-zA-Z]+\\d+(?:@[a-zA-Z]+\\.[a-zA-Z]+)?",
+            score=1.0,
+        ),
+        Pattern(name="NNumber", regex="N\\d{8}\\b", score=1.0),
+        Pattern(
+            name="ID",
+            regex="\\b((([A-Za-z]{2,4})( +))|([A-Za-z]{2,4}))?\\d{6,10}\b",
+            score=1.0,
+        ),
+        Pattern(name="Omitted", regex="\\[TITLE_\\d+\\]", score=1.0),
     ]
 
-    desanitized_output = ""
+    recognizer = PatternRecognizer(supported_entity="TITLE", patterns=patterns)
 
-    desanitized_output = output
-    for scanner in output_scanners:
-        desanitized_output, is_valid, risk_score = scanner.scan(
-            desanitized_output, deanonymize=True
-        )
+    entries = recognizer.analyze(text=output, entities=["TITLE"])
 
-    scanner = Deanonymize(vault)
+    print(regex_vault)
 
-    try:
-        desanitized_output, is_valid, risk_score = scanner.scan(
-            prompt, desanitized_output
-        )
-    except Exception as e:
-        print(f"Error during Deanonimyze scanner output: {e}")
+    def check(x):
+        print("pattern", x)
+        res = regex_vault.gex(x, "")
+        print(res)
+        return res
 
-    return desanitized_output
+    result = engine.deanonymize(
+        text=output,
+        entities=entries,
+        operators={"TITLE": OperatorConfig("custom", {"lambda": lambda x: check(x)})},
+    )
+
+    return result
+
+    # output_scanners = [
+    #     NNumberScanner(regex_vault),
+    #     StudentNetIDScanner(regex_vault),
+    #     IDScanner(regex_vault),
+    # ]
+
+    # desanitized_output = ""
+
+    # desanitized_output = output
+    # for scanner in output_scanners:
+    #     desanitized_output, is_valid, risk_score = scanner.scan(
+    #         desanitized_output, deanonymize=True
+    #     )
+
+    # scanner = Deanonymize(vault)
+
+    # try:
+    #     desanitized_output, is_valid, risk_score = scanner.scan(
+    #         prompt, desanitized_output
+    #     )
+    # except Exception as e:
+    #     print(f"Error during Deanonimyze scanner output: {e}")
+
+    # return desanitized_output
 
 
-def process_input_with_llmguard(input: str, vault: Vault, regex_vault: dict) -> str:
+counter = 0
+
+
+def process_input_with_llmguard(input: str, regex_vault: dict) -> EngineResult:
     """
     Function to process the input with LLMGuard by applying the appropriate scanners.
 
     Args:
         input (str): The input to process.
-        vault (Vault): The vault object to use for the scanners.
-
     Returns:
         str: The processed input.
     """
-    input_scanners = [
-        NNumberScanner(regex_vault),
-        StudentNetIDScanner(regex_vault),
-        IDScanner(regex_vault),
-    ]
+    global counter
+    counter = 0
 
-    # Note: custom regex_patterns are not working, so we are using 2 passes
-    second_pass = [
-        Anonymize(
-            vault, preamble="Insert before prompt", recognizer_conf=BERT_LARGE_NER_CONF
+    patterns = [
+        Pattern(
+            name="StudentNetID",
+            regex="[a-zA-Z]+\\d+(?:@[a-zA-Z]+\\.[a-zA-Z]+)?",
+            score=1.0,
+        ),
+        Pattern(name="NNumber", regex="N\\d{8}\\b", score=1.0),
+        Pattern(
+            name="ID",
+            regex="\\b((([A-Za-z]{2,4})( +))|([A-Za-z]{2,4}))?\\d{6,10}\b",
+            score=1.0,
         ),
     ]
 
-    sanitized_prompt = input
-    for scanner in input_scanners:
-        sanitized_prompt, is_valid, risk_score = scanner.scan(sanitized_prompt)
+    recognizer = PatternRecognizer(supported_entity="TITLE", patterns=patterns)
 
-    sanitized_prompt, results_valid, risk_score = scan_prompt(
-        second_pass, sanitized_prompt
+    entries = recognizer.analyze(text=input, entities=["TITLE"])
+
+    print("Result:")
+    print(entries)
+
+    engine = AnonymizerEngine()
+
+    def set_record(record):
+        global counter
+
+        counter += 1
+
+        regex_vault[f"[TITLE_{counter}]"] = record
+
+        return f"[TITLE_{counter}]"
+
+    sanitized_prompt = engine.anonymize(
+        text=input,
+        analyzer_results=entries,
+        operators={
+            "TITLE": OperatorConfig("custom", {"lambda": lambda x: set_record(x)})
+        },
     )
+
+    print(f"Sanitized prompt: {sanitized_prompt}")
 
     return sanitized_prompt
