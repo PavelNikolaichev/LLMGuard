@@ -22,16 +22,19 @@ def run_llm_guard(prompt: str) -> str:
     Returns:
         str: The processed prompt.
     """
+    regex_vault = {}
     vault = Vault()
 
+    anonymize_result = process_input_with_llmguard(prompt, regex_vault)
+
     mock_output = generate_output(
-        process_input_with_llmguard(prompt, vault),
+        anonymize_result.text,
         pipeline,
     )
 
-    processed_output = process_output_with_llmguard(prompt, mock_output, vault)
+    processed_output = process_output_with_llmguard(prompt, mock_output, regex_vault)
 
-    return processed_output
+    return processed_output.text
 
 
 iface = gr.Interface(

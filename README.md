@@ -21,7 +21,11 @@ You can test functionality via [HuggingFace Spaces](https://huggingface.co/space
 To install LLMGuard, follow these steps:
 
 1. Clone the repository: `git clone https://github.com/PavelNikolaichev/LLMGuard.git`
-2. Install the required dependencies: `pip install -r requirements.txt`
+2. Install the required dependencies:
+   ```python
+   pip install -r pre-requirements.txt
+   pip install -r requirements.txt
+   ```
 
 ## Usage
 
