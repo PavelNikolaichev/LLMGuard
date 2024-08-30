@@ -1,20 +1,17 @@
-import os
-from llm_guard.input_scanners import Anonymize
-from llm_guard.input_scanners.anonymize_helpers import BERT_LARGE_NER_CONF
+from presidio_analyzer import (
+    PatternRecognizer,
+    Pattern,
+)
+from presidio_anonymizer import (
+    AnonymizerEngine,
+    EngineResult,
+    OperatorConfig,
+)
 
-from llm_guard.vault import Vault
-from llm_guard import scan_prompt
-
-from LLM.LLMGuard.InputScanners.IDScanner import IDScanner
-from LLM.LLMGuard.InputScanners.NNumberScanner import NNumberScanner
-from LLM.LLMGuard.InputScanners.StudentNetIDScanner import StudentNetIDScanner
-
-from llm_guard.output_scanners import Deanonymize
+import re
 
 
-def process_output_with_llmguard(
-    prompt: str, output: str, vault: Vault, regex_vault: dict
-) -> str:
+def process_output_with_llmguard(prompt: str, output: str, regex_vault: dict) -> str:
     """
     Function to process the output with LLMGuard by applying Deanonymize scanner.
 
@@ -26,62 +23,71 @@ def process_output_with_llmguard(
     Returns:
         str: The processed output.
     """
-    output_scanners = [
-        NNumberScanner(regex_vault),
-        StudentNetIDScanner(regex_vault),
-        IDScanner(regex_vault),
-    ]
+    regex = r"\[OMITTED_\d+\]"
 
-    desanitized_output = ""
+    def check(x: re.Match):
+        res = regex_vault.get(x.group(), "")
+        return res
 
-    desanitized_output = output
-    for scanner in output_scanners:
-        desanitized_output, is_valid, risk_score = scanner.scan(
-            desanitized_output, deanonymize=True
-        )
+    # Deanonymize engine in presidio does not support custom behavior unless we would override it's sources, according to documentation
+    result = output
+    result = re.sub(regex, check, result)
 
-    scanner = Deanonymize(vault)
-
-    try:
-        desanitized_output, is_valid, risk_score = scanner.scan(
-            prompt, desanitized_output
-        )
-    except Exception as e:
-        print(f"Error during Deanonimyze scanner output: {e}")
-
-    return desanitized_output
+    return result
 
 
-def process_input_with_llmguard(input: str, vault: Vault, regex_vault: dict) -> str:
+counter = 0
+
+
+def process_input_with_llmguard(input: str, regex_vault: dict) -> EngineResult:
     """
     Function to process the input with LLMGuard by applying the appropriate scanners.
 
     Args:
         input (str): The input to process.
-        vault (Vault): The vault object to use for the scanners.
-
     Returns:
         str: The processed input.
     """
-    input_scanners = [
-        NNumberScanner(regex_vault),
-        StudentNetIDScanner(regex_vault),
-        IDScanner(regex_vault),
-    ]
+    global counter
+    counter = 0
 
-    # Note: custom regex_patterns are not working, so we are using 2 passes
-    second_pass = [
-        Anonymize(
-            vault, preamble="Insert before prompt", recognizer_conf=BERT_LARGE_NER_CONF
+    patterns = [
+        Pattern(
+            name="StudentNetID",
+            regex="[a-zA-Z]+\\d+(?:@[a-zA-Z]+\\.[a-zA-Z]+)?",
+            score=1.0,
+        ),
+        Pattern(name="NNumber", regex="N\\d{8}\\b", score=1.0),
+        Pattern(
+            name="ID",
+            regex="\\b((([A-Za-z]{2,4})( +))|([A-Za-z]{2,4}))?\\d{6,10}\b",
+            score=1.0,
         ),
     ]
 
-    sanitized_prompt = input
-    for scanner in input_scanners:
-        sanitized_prompt, is_valid, risk_score = scanner.scan(sanitized_prompt)
+    recognizer = PatternRecognizer(supported_entity="TITLE", patterns=patterns)
 
-    sanitized_prompt, results_valid, risk_score = scan_prompt(
-        second_pass, sanitized_prompt
+    entries = recognizer.analyze(text=input, entities=["TITLE"])
+
+    engine = AnonymizerEngine()
+
+    def set_record(record):
+        global counter
+
+        counter += 1
+
+        regex_vault[f"[OMITTED_{counter}]"] = record
+
+        return f"[OMITTED_{counter}]"
+
+    sanitized_prompt = engine.anonymize(
+        text=input,
+        analyzer_results=entries,
+        operators={
+            "TITLE": OperatorConfig("custom", {"lambda": lambda x: set_record(x)})
+        },
     )
+
+    print(f"Sanitized prompt: {sanitized_prompt}")
 
     return sanitized_prompt
