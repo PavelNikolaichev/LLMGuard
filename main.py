@@ -3,7 +3,6 @@ from LLM.LLMGuard.GuardProcessor import (
     process_output_with_llmguard,
     process_input_with_llmguard,
 )
-from llm_guard.vault import Vault
 
 from dotenv import load_dotenv
 
@@ -23,7 +22,6 @@ def run_llm_guard(prompt: str) -> str:
         str: The processed prompt.
     """
     regex_vault = {}
-    vault = Vault()
 
     anonymize_result = process_input_with_llmguard(prompt, regex_vault)
 
@@ -34,7 +32,7 @@ def run_llm_guard(prompt: str) -> str:
 
     processed_output = process_output_with_llmguard(prompt, mock_output, regex_vault)
 
-    return processed_output.text
+    return processed_output
 
 
 iface = gr.Interface(
