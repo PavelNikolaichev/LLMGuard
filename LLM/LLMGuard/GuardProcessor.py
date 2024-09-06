@@ -9,7 +9,7 @@ from typing import Dict
 
 def deanonymize_output(
     output: str, recognized_tokens, regex_vault: Dict[str, str]
-) -> str:
+) -> EngineResult:
     """
     Deanonymize the provided output using the recognized tokens and regex vault.
 
@@ -36,7 +36,7 @@ def deanonymize_output(
         },
     )
 
-    return result.text
+    return result
 
 
 def recognize_anonymized_tokens(output: str) -> list:
@@ -60,7 +60,7 @@ def recognize_anonymized_tokens(output: str) -> list:
 
 def process_output_with_llmguard(
     prompt: str, output: str, regex_vault: Dict[str, str]
-) -> str:
+) -> EngineResult:
     """
     Process the output with LLMGuard by applying the deanonymization scanner.
 
@@ -70,14 +70,13 @@ def process_output_with_llmguard(
         regex_vault (dict): The vault to use for deanonymization.
 
     Returns:
-        str: The deanonymized output.
+        EngineResult: The deanonymized output.
     """
     recognized_anonymized_tokens = recognize_anonymized_tokens(output)
     deanonymized_output = deanonymize_output(
         output, recognized_anonymized_tokens, regex_vault
     )
 
-    print(f"Deanonymized output: {deanonymized_output}")
     return deanonymized_output
 
 
@@ -99,7 +98,10 @@ def anonymize_input(
     entity_counters = {}  # Store counters for each entity type
 
     def store_record(record: str, entity_type: str) -> str:
-        print(f"Storing record {record} for entity type {entity_type}")
+        # I am not sure why some of the entries are just PII, so we actually should skip them
+        if record == "PII":
+            return record
+
         nonlocal entity_counters
         # Initialize counter for entity type if not set
         if entity_type not in entity_counters:
@@ -181,5 +183,4 @@ def process_input_with_llmguard(
     recognized_patterns = recognize_patterns_in_input(input_text)
     sanitized_prompt = anonymize_input(input_text, recognized_patterns, regex_vault)
 
-    print(f"Sanitized prompt: {sanitized_prompt}")
     return sanitized_prompt
