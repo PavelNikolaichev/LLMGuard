@@ -1,7 +1,5 @@
 from llama_cpp import Llama
 
-device = "cpu"
-
 
 def get_pipeline(model_name: str = "Qwen/Qwen2-0.5B-Instruct-GGUF"):
     """

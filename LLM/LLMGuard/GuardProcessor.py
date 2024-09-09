@@ -1,14 +1,14 @@
-from presidio_analyzer import PatternRecognizer, Pattern
+from presidio_analyzer import PatternRecognizer, Pattern, RecognizerResult
 from presidio_anonymizer import (
     AnonymizerEngine,
     EngineResult,
     OperatorConfig,
 )
-from typing import Dict
+from typing import Dict, List
 
 
 def deanonymize_output(
-    output: str, recognized_tokens, regex_vault: Dict[str, str]
+    output: str, recognized_tokens: List[RecognizerResult], regex_vault: Dict[str, str]
 ) -> EngineResult:
     """
     Deanonymize the provided output using the recognized tokens and regex vault.
@@ -39,7 +39,7 @@ def deanonymize_output(
     return result
 
 
-def recognize_anonymized_tokens(output: str) -> list:
+def recognize_anonymized_tokens(output: str) -> List[RecognizerResult]:
     """
     Recognize anonymized tokens in the output using a predefined pattern.
 
@@ -55,17 +55,17 @@ def recognize_anonymized_tokens(output: str) -> list:
     recognizer = PatternRecognizer(
         supported_entity="AnonymizedToken", patterns=[anonymized_pattern]
     )
+
     return recognizer.analyze(text=output, entities=["AnonymizedToken"])
 
 
 def process_output_with_llmguard(
-    prompt: str, output: str, regex_vault: Dict[str, str]
+    output: str, regex_vault: Dict[str, str]
 ) -> EngineResult:
     """
-    Process the output with LLMGuard by applying the deanonymization scanner.
+    Process the output with Presidio by applying the deanonymization scanner.
 
     Args:
-        prompt (str): The original prompt.
         output (str): The anonymized output to process.
         regex_vault (dict): The vault to use for deanonymization.
 
@@ -81,7 +81,9 @@ def process_output_with_llmguard(
 
 
 def anonymize_input(
-    input_text: str, recognized_patterns, regex_vault: Dict[str, str]
+    input_text: str,
+    recognized_patterns: List[RecognizerResult],
+    regex_vault: Dict[str, str],
 ) -> EngineResult:
     """
     Anonymize input text using predefined patterns and update the regex vault.
@@ -131,7 +133,7 @@ def anonymize_input(
     return result
 
 
-def recognize_patterns_in_input(input_text: str) -> list:
+def recognize_patterns_in_input(input_text: str) -> List[RecognizerResult]:
     """
     Recognize sensitive patterns in the input text using predefined patterns.
 
@@ -171,7 +173,7 @@ def process_input_with_llmguard(
     input_text: str, regex_vault: Dict[str, str]
 ) -> EngineResult:
     """
-    Process the input text with LLMGuard by applying anonymization.
+    Process the input text with Presidio by applying anonymization.
 
     Args:
         input_text (str): The input to process.

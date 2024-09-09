@@ -30,7 +30,7 @@ def run_llm_guard(prompt: str) -> str:
         pipeline,
     )
 
-    processed_output = process_output_with_llmguard(prompt, mock_output, regex_vault)
+    processed_output = process_output_with_llmguard(mock_output, regex_vault)
 
     return anonymize_result.text, mock_output, processed_output.text
 
