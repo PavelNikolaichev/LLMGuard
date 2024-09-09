@@ -9,8 +9,11 @@ app_file: main.py
 pinned: false
 ---
 
-LLMGuard is a project that utilizes Gradio and LLMGuard to protect users from leaking personal information in a university environment.
-Our project aims to hide sensitive info for NYU students in particular, so some of the scanners might require additional changes if you want to use it for another university.
+# LLMGuard
+
+LLMGuard is a project that utilizes Presidio to protect users from leaking personal information in a university-like environment.
+Our project aims to hide sensitive info for NYU students in particular, so some of the functionality might require additional changes if you want to use it for another university.
+In this repo, Gradio is utilized to showcase the functionality provided.
 
 ## Demo
 
@@ -23,7 +26,6 @@ To install LLMGuard, follow these steps:
 1. Clone the repository: `git clone https://github.com/PavelNikolaichev/LLMGuard.git`
 2. Install the required dependencies:
    ```python
-   pip install -r pre-requirements.txt
    pip install -r requirements.txt
    ```
 
@@ -32,3 +34,4 @@ To install LLMGuard, follow these steps:
 To run this project, follow these steps:
 
 1. Run `main.py`: `python main.py`
+2. Open the provided link in your browser
