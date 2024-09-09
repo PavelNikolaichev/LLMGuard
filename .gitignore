@@ -5,6 +5,8 @@
 .settings/
 .idea/
 
+venv/
+
 .env
 # Gradio
 flagged/

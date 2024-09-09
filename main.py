@@ -13,7 +13,7 @@ pipeline = None
 
 def run_llm_guard(prompt: str) -> str:
     """
-    Run LLMGuard on a prompt. This function processes both input and output with LLMGuard.
+    Run LLMGuard on a prompt. This function processes both input and output with Presidio.
 
     Args:
         prompt (str): The prompt to process.
@@ -30,17 +30,21 @@ def run_llm_guard(prompt: str) -> str:
         pipeline,
     )
 
-    processed_output = process_output_with_llmguard(prompt, mock_output, regex_vault)
+    processed_output = process_output_with_llmguard(mock_output, regex_vault)
 
-    return processed_output
+    return anonymize_result.text, mock_output, processed_output.text
 
 
 iface = gr.Interface(
     fn=run_llm_guard,
-    inputs="text",
-    outputs="text",
+    inputs=gr.Textbox(label="Prompt", lines=1),
+    outputs=[
+        gr.Textbox(label="Processed Anonymized Prompt", lines=1),
+        gr.Textbox(label="Model Output", lines=1),
+        gr.Textbox(label="Processed Deanonymized Output", lines=1),
+    ],
     title="LLMGuard Tester",
-    description="Enter a prompt to generate LLM output and process it with LLMGuard. Current mode is text generation.",
+    description="Enter a prompt to generate LLM output and process it with Presidio. Current mode is text generation.",
 )
 
 if __name__ == "__main__":
