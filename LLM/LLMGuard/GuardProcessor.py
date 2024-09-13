@@ -50,7 +50,9 @@ def recognize_anonymized_tokens(output: str) -> List[RecognizerResult]:
         list: Recognized anonymized tokens in the output.
     """
     anonymized_pattern = Pattern(
-        name="AnonymizedToken", regex=r"\[OMITTED_[A-Za-z]+_\d+\]", score=1.0
+        name="AnonymizedToken",
+        regex=r"\<[A-Za-z]+\d+\>",
+        score=1.0,
     )
     recognizer = PatternRecognizer(
         supported_entity="AnonymizedToken", patterns=[anonymized_pattern]
@@ -110,8 +112,8 @@ def anonymize_input(
             entity_counters[entity_type] = 0
         entity_counters[entity_type] += 1
 
-        # Create token in the format [OMITTED_<EntityType>_<Counter>]
-        token = f"[OMITTED_{entity_type}_{entity_counters[entity_type]}]"
+        # Create token in the format <{EntityType}{Counter}>
+        token = f"<{entity_type}{entity_counters[entity_type]}>"
         regex_vault[token] = record
         return token
 
